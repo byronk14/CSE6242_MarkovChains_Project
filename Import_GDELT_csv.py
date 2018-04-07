@@ -104,13 +104,13 @@ for code in MarkovRandomEvents:
 mc_data = list()
 
 for k,v in markovDict_prob.items():
-    tempdict = {}
     for kt, kv in v.items():
+        tempdict = {}
         tempdict['source'] = str(k)
         tempdict['target'] = str(kt)
         tempdict['value'] = str(kv)
         mc_data.append(tempdict)
-#print(mc_data)
+print(mc_data)
 JSONFILE = 'MC_json.json'
 with open(JSONFILE, 'w') as f:
     json_data = json.dump(mc_data, f)
