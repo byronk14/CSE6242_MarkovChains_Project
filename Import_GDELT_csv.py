@@ -8,8 +8,9 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.basemap import Basemap
 import networkx as nx
 from pprint import pprint
+import json
 
-####################### FUNCTIONS #########################
+############################################## FUNCTIONS ################################################
 def make_markov_model(data):
     markov_model = dict()
 
@@ -46,7 +47,7 @@ def generate_random_events(length, markov_model):
     return event_list
 
 
-######################### START HERE #############################
+############################################ START HERE ###############################################
 #IMPORT CSV
 EVENTFILE = '20180320161401.22251.events.csv' #Replace this string with your event file name. The file should be located in the same directory as the script.
 df = pd.read_csv(EVENTFILE)
@@ -77,6 +78,7 @@ markovDict_prob = {}
 t_df = pd.DataFrame(np.zeros((298, 298)), columns=EventCodeLookup['Code'], index=EventCodeLookup['Code'])
 states = list(EventCodeLookup['Code'])
 
+
 #CREATE TRANSITION MATRIX
 for k, v in markovDict.items():
     temptot = sum(v.values())
@@ -95,11 +97,27 @@ Events = list()
 for code in MarkovRandomEvents:
     temp = list(EventCodeLookup['Description'].loc[EventCodeLookup['Code'] == code])[0]
     Events.append(temp)
-print(Events) #This prints the forecasted events.
+#print(Events) #This prints the forecasted events.
+
+
+######################################### OUTPUT TO JSON FILE ##########################################
+mc_data = list()
+
+for k,v in markovDict_prob.items():
+    tempdict = {}
+    for kt, kv in v.items():
+        tempdict['source'] = str(k)
+        tempdict['target'] = str(kt)
+        tempdict['value'] = str(kv)
+        mc_data.append(tempdict)
+#print(mc_data)
+JSONFILE = 'MC_json.json'
+with open(JSONFILE, 'w') as f:
+    json_data = json.dump(mc_data, f)
 
 
 
-######################## IGNORE ########################
+############################################### IGNORE #################################################
 # create a function that maps transition probability dataframe 
 # to markov edges and weights
 
