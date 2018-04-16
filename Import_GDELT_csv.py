@@ -2,14 +2,15 @@ import pandas as pd
 import numpy as np
 from histograms import Dictogram
 import random
-from collections import deque
+from collections import deque, defaultdict
 import matplotlib.pyplot as plt
 import json
+
+
 
 ############################################## FUNCTIONS ################################################
 def make_markov_model(data):
     markov_model = dict()
-
     for i in range(0, len(data)-1):
         if data[i] in markov_model:
             # We have to just append to the existing histogram
@@ -58,26 +59,28 @@ def make_higher_order_markov_model(order, data):
 
 def main():
     #IMPORT CSV
-    EVENTFILE = '20180320161401.22251.events.csv' #Replace this string with your event file name. The file should be located in the same directory as the script.
+    EVENTFILE = 'russia.csv' #Replace this string with your event file name. The file should be located in the same directory as the script.
     df = pd.read_csv(EVENTFILE)
+    df['EVENTCODE'] = df.EVENTCODE.astype(str)
     EventCodeLookup = pd.read_csv('EventCodeLookup.csv')
     pd.to_numeric(EventCodeLookup["Code"])
 
     #get EventCodes size
-    numRows = df['EventCode'].shape[0]
+    numRows = df['EVENTCODE'].shape[0]
 
     #create eventcode list and markov chain dictionary
     eventCodeList = list()
+    #markovDict = defaultdict()
     markovDict = {}
     numOfEvents = 20 #This is the number of predicted events.
     trainPercentage = 0.8
     trainrows = int(numRows * trainPercentage)
-    train = list(df['EventCode'])
+    train = list(df['EVENTCODE'])
     train = train[:trainrows]
 
     #CREATE EVENTCODELIST
     for i in range(numRows-1):
-        tup = (df['EventCode'].iloc[i], df['EventCode'].iloc[i+1])
+        tup = (df['EVENTCODE'].iloc[i], df['EVENTCODE'].iloc[i+1])
         eventCodeList.append(tup)
 
 
@@ -85,18 +88,19 @@ def main():
     markovDict = make_markov_model(train)
     markovDict_prob = {}
     markovDict_2nd_prob = {}
-    t_df = pd.DataFrame(np.zeros((298, 298)), columns=EventCodeLookup['Code'], index=EventCodeLookup['Code'])
+    #t_df = pd.DataFrame(np.zeros((298, 298)), columns=EventCodeLookup['Code'], index=EventCodeLookup['Code'])
     states = list(EventCodeLookup['Code'])
     markovDict_2nd = make_higher_order_markov_model(2, train)
-
+    #print(markovDict)
 
     #CREATE TRANSITION MATRIX FOR 1ST-ORDER MC
     for k, v in markovDict.items():
+        #print(k ,type(k))
         temptot = sum(v.values())
         tempprobdict = {}
         for kt, vt in v.items():
             tempprobdict[kt] = vt / temptot
-            t_df.loc[k, kt] = vt / temptot
+            #t_df.loc[k, kt] = vt / temptot
         markovDict_prob[k] = tempprobdict
     #print(markovDict_prob) #Uncomment to see what the MC Model looks like
 
@@ -106,11 +110,14 @@ def main():
         tempprobdict = {}
         for kt, vt in v.items():
             tempprobdict[kt] = vt / temptot
-            t_df.loc[k, kt] = vt / temptot
+            #t_df.loc[k, kt] = vt / temptot
         markovDict_2nd_prob[k] = tempprobdict
     #print(markovDict_2nd_prob) #Uncomment to see what the 2nd order MC Model looks like
 
-
+    print('total number of possible events in the given dataset (1st order): ' len(markovDict.keys()))
+    print('total number of possible events in the given dataset (2nd order): ' len(markovDict_2nd.keys()))
+    #results = [prediction == truth for prediction, truth in zip(y_predicted, y)]
+    #accuracy = float(results.count(True)) / float(len(results))
 
     #This will generate list of events with 'numOfEvents' length from Markov Model.
     MarkovRandomEvents = generate_random_events(numOfEvents, make_markov_model(train))
@@ -124,16 +131,18 @@ def main():
     ######################################### OUTPUT TO JSON FILE ##########################################
     mc_data = list()
 
-    for k,v in markovDict_2nd_prob.items():
+    for k,v in markovDict_prob.items():
         for kt, kv in v.items():
             tempdict = {}
             tempdict['source'] = str(k)
             tempdict['target'] = str(kt)
             tempdict['value'] = str(kv)
             mc_data.append(tempdict)
+
     JSONFILE = 'MC_2nd_json.json'
     with open(JSONFILE, 'w') as f:
-        json_data = json.dump(mc_data, f)
+       #json_data = json.dump(mc_data, f)
+       json.dump(mc_data, f)
 
 
 if __name__ == "__main__":
