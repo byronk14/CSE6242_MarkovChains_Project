@@ -157,6 +157,8 @@ if __name__ == "__main__":
         avg_distance_dict[k] = sum(distance_list) / len(distance_list)
     print(avg_distance_dict)
     
+
+    #Plot distance 
     import plotly as py
     import plotly.graph_objs as go
     
@@ -174,24 +176,6 @@ if __name__ == "__main__":
     "layout": go.Layout(title="Distance per Training Split", xaxis=xaxis, yaxis=yaxis)
     })
     
-    
-# =============================================================================
-#     trace2 = go.Bar(
-#         x=[0, 1, 2, 3, 4, 5],
-#         y=[1, 0.5, 0.7, -1.2, 0.3, 0.4]
-#     )
-# =============================================================================
-
-        
-    #train 0.9, avg distance= 9.126
-    #train 0.85, avg distance= 9.208
-    #train 0.8, avg distance= 8.337
-    #train 0.75, avg distance= 8.762
-    #train 0.7, avg distance= 8.944
-    #train 0.65, avg distance= 8.335
-    #train 0.6, avg distance= 8.668
-    #train 0.55, avg distance= 8.809
-    #train 0.5, avg distance= 8.837
     
     ######################################### OUTPUT TO JSON FILE ##########################################
 # =============================================================================
